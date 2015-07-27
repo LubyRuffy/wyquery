@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+
+unless `ps aux | grep '#{File.basename(__FILE__)}' | grep -v grep | grep -v #{Process.pid} | grep -v '.bash_profile'`.empty?
+  puts 'already anothor running, now exit...'
+  exit(-1)
+end
+
 require 'yaml'
 @root_path = File.expand_path(File.dirname(__FILE__))
 require 'active_record'
