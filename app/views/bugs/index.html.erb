@@ -1,0 +1,80 @@
+<p id="notice"><%= notice %></p>
+
+<h1>乌云(Wooyun)公开漏洞列表 </h1>
+
+<%#
+  Filterrific adds the `form_for_filterrific` view helper:
+  * adds dom id 'filterrific_filter'
+  * applies javascript behaviors:
+      * AJAX form submission on change
+      * AJAX spinner while AJAX request is being processed
+  * sets form_for options like :url, :method and input name prefix
+%>
+<%= form_for_filterrific @filterrific do |f| %>
+    <div>
+      关键字
+      <%# give the search field the 'filterrific-periodically-observed' class for live updates %>
+      <%= f.text_field(
+                  :q,
+                  class: 'filterrific-periodically-observed'
+          ) %>
+
+      <%# give the search field the 'filterrific-periodically-observed' class for live updates %>
+      <%= f.check_box(
+                  :with_cloud,
+                  :checked => @with_cloud_set,
+                  :class => 'filterrific-periodically-observed'
+          ) %>乌云标志
+      <%= f.check_box(
+                  :with_money,
+                  :checked => @with_money_set,
+                  :class => 'filterrific-periodically-observed'
+          ) %>现金
+      <%= f.check_box(
+                  :with_hide,
+                  :checked => @with_hide_set,
+                  :class => 'filterrific-periodically-observed'
+          ) %>隐藏
+
+      <%= f.select :sorted_by,
+              @filterrific.select_options[:sorted_by],
+              {},
+              { :class => 'form-control' } %>
+
+
+      <%= f.submit '查询', class: "btn btn-primary" %>
+      <%= link_to(
+                  '清空过滤器',
+                  reset_filterrific_url,
+          ) %>
+    </div>
+    <%# add an automated spinner to your form when the list is refreshed %>
+    <%= render_filterrific_spinner %>
+<% end %>
+
+<table class="listTable">
+  <thead>
+  <tr><td style="text-align:right; background-color:#fff;">共查询到 <%= @bugs.count%> 条记录</td><td colspan="2" style="text-align:right; background-color:#fff;"><%= will_paginate @bugs %></td></tr>
+    <tr>
+      <th style="width:100px">日期(提交／公开）</th>
+      <th>标题</th>
+      <th style="width:50px">是否隐藏</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @bugs.each do |bug| %>
+      <tr>
+        <td style:"width:100px"><%= link_to bug.created_time.strftime('%F %H:%M'), bug %><%= (bug.ismoney?)?raw('<img src="/images/m1.png">'):''%>
+          <%= (bug.iscloud?)?raw('<img src="/images/credit.png">'):''%>
+          （<%= bug.published_time.strftime('%F') %>）
+        </td>
+        <td><%= link_to bug.title, bug %></td>
+        <td><%= bug.ishide? ? '是':'' %></td>
+      </tr>
+    <% end %>
+    <tr><td style="text-align:right; background-color:#fff;">共查询到 <%= @bugs.count%> 条记录</td><td colspan="2" style="text-align:right; background-color:#fff;"><%= will_paginate @bugs %></td></tr>
+  </tbody>
+</table>
+
+<br>

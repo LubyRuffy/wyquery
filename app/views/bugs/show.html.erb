@@ -1,0 +1,27 @@
+<% provide(:title, @bug.title + ' : ' + @bug.wid ) %>
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Wid:</strong>
+  <%= @bug.wid %>
+</p>
+
+<p>
+  <strong>Title:</strong>
+  <%= @bug.title %>
+</p>
+
+<p>
+  <strong>Content:</strong>
+<%
+   content = @bug.content
+   del_index = @bug.content.index('<div id="reply" class="reply">')
+   if del_index
+     content = content[0..del_index-1]
+   end
+
+%>
+  <%= raw(content) %>
+</p>
+
+<%= link_to 'Back', bugs_path %>
