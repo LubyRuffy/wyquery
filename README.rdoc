@@ -1,28 +1,22 @@
 == README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Wooyun公开的漏洞详情是一个很好的资源，但是没有提供很好的搜索引擎和排序功能来进行数据分析，所以，这个项目用户镜像wooyun上已经对外公开的漏洞详情，并提供更多搜索和排序的功能。
 
-Things you may want to cover:
+你有没有想完成如下功能？
+＊ 我想只看给钱的漏洞
+＊ 我想只看带乌云标志的漏洞
+＊ 我想按照rank排序漏洞
+如果有，那你跟我遇到的问题一样，不妨试试这个项目！线上已经搭建好的环境如下：http://wooyun.wusec.org
 
-* Ruby version
+使用步骤：
+git clone https://github.com/LubyRuffy/wyquery.git
+cd wyquery
+bundel install
+rake db:migrate
+rails s
+然后访问http://0.0.0.0:3000
 
-* System dependencies
+这时还需要建立定时任务同步数据
+crontab -e
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
-
-
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+./tools/import_bugs.rb
