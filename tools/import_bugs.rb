@@ -259,5 +259,5 @@ class WooyunDumper
 end
 
 WooyunDumper.sync
-WooyunDumper.bruteforce_sync(33544)
+#WooyunDumper.bruteforce_sync
 
