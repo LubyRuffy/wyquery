@@ -1,7 +1,7 @@
 class Bug < ActiveRecord::Base
 
   filterrific(
-      default_filter_params: { :sorted_by => 'published_time_desc', :cols=>},
+      default_filter_params: { :sorted_by => 'published_time_desc', :cols=>'-'},
       available_filters: [
           :q,
           :with_cloud,
