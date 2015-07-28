@@ -21,7 +21,7 @@ class BugsController < ApplicationController
     @with_cloud_set = (filterrific_params[:with_cloud].to_i==1)
     @with_money_set = (filterrific_params[:with_money].to_i==1)
     @with_hide_set = (filterrific_params[:with_hide].to_i==1)
-    @bugs = @filterrific.find.where('content is not null and created_time is not null').paginate(page:page, per_page:per_page)
+    @bugs = @filterrific.find.paginate(page:page, per_page:per_page)
     #@bugs = Bug.select("id, wid, title, ismoney, iscloud, ishide, created_time, published_time").order('published_time desc, created_time desc').paginate(page:page, per_page:per_page)#select("id, wid, title, ismoney, iscloud, ishide, created_time, published_time").order('published_time desc, created_time desc')
   end
 
