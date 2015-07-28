@@ -1,15 +1,20 @@
 class Bug < ActiveRecord::Base
 
   filterrific(
-      default_filter_params: { :sorted_by => 'published_time_desc' },
+      default_filter_params: { :sorted_by => 'published_time_desc', :cols=>},
       available_filters: [
           :q,
           :with_cloud,
           :with_money,
           :with_hide,
-          :sorted_by
+          :sorted_by,
+          :cols,
       ]
   )
+
+  scope :cols, lambda { |query|
+                  select('id, wid, title, ismoney, iscloud, ishide, created_time, published_time')
+                }
 
   scope :q, lambda { |query|
        return nil if query.blank?
