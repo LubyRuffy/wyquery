@@ -14,7 +14,8 @@ class BugsController < ApplicationController
         Bug,
         params[:filterrific] ||= {filterrific_reset: true, sorted_by: 'published_time_desc', :select_cols=>'test'},
         :select_options => {
-            sorted_by: Bug.options_for_sorted_by
+            sorted_by: Bug.options_for_sorted_by,
+            rank_range: Bug.options_for_rank_range
         }
     ) or return
 

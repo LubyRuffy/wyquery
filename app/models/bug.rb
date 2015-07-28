@@ -8,12 +8,13 @@ class Bug < ActiveRecord::Base
           :with_money,
           :with_hide,
           :sorted_by,
+          :rank_range,
           :select_cols,
       ]
   )
 
   scope :select_cols, lambda { |query|
-                  select('id, wid, title, ismoney, iscloud, ishide, created_time, published_time')
+                  select('id, wid, title, ismoney, iscloud, ishide, created_time, published_time, rank')
                 }
 
   scope :q, lambda { |query|
@@ -34,6 +35,17 @@ class Bug < ActiveRecord::Base
                      check_boolean_attr "ishide", flag
                    }
 
+  scope :rank_range, lambda {|query|
+                     return nil if query.blank?
+                     query = query.downcase
+                     b,e = query.split('-')
+                     return nil if b.nil? || e.nil?
+                     b = b.to_i
+                     e = e.to_i
+                     return nil if b<0 || b>20 || e<0 || e>20
+                     where("rank>=? and rank<= ?", b, e)
+                   }
+
   scope :sorted_by, lambda { |sort_option|
                     direction = (sort_option =~ /desc$/) ? 'desc' : 'asc'
                     case sort_option.to_s
@@ -41,6 +53,8 @@ class Bug < ActiveRecord::Base
                         order("created_time #{ direction }, published_time #{ direction }")
                       when /^published_time_/
                         order("published_time #{ direction }, created_time #{ direction }")
+                      when /^rank_/
+                        order("rank #{ direction }, published_time #{ direction }, created_time #{ direction }")
                       else
                         raise(ArgumentError, "Invalid sort option: #{ sort_option.inspect }")
                     end
@@ -57,7 +71,17 @@ class Bug < ActiveRecord::Base
         ['公开时间顺序', 'published_time_asc'],
         ['提交时间倒序', 'created_time_desc'],
         ['提交时间顺序', 'created_time_asc'],
+        ['RANK排序', 'rank_desc'],
+    ]
+  end
 
+  def self.options_for_rank_range
+    [
+        ['所有Rank', '0-20'],
+        ['0-5', '0-5'],
+        ['6-10', '6-10'],
+        ['11-15', '11-15'],
+        ['16-20', '16-20'],
     ]
   end
 

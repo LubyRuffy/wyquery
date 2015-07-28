@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150727032940) do
+ActiveRecord::Schema.define(version: 20150728174305) do
 
   create_table "bugs", force: :cascade do |t|
     t.string   "wid"
@@ -27,6 +27,7 @@ ActiveRecord::Schema.define(version: 20150727032940) do
     t.string   "author"
     t.boolean  "ishide"
     t.integer  "wmid"
+    t.integer  "rank"
   end
 
   add_index "bugs", ["wid"], name: "index_bugs_on_wid"

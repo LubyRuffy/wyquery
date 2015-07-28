@@ -61,27 +61,24 @@ class WooyunDumper
     puts "----> Finished!".green
   end
 
-  #差异同步
-  def self.bruteforce_sync(startid=0)
+  #差异同步，如果count不为0，那么到找到的id位置就结束，否则一直找
+  def self.bruteforce_sync(startid=0, count=0)
     startid = get_max_wmid() if startid==0
-    endid = get_max_wmid()-100
+    endid = 0
+    endid = get_max_wmid()-count if count>0
     if startid == 0
       put "startid is 0, you should set the value !".red
     end
 
-    last_error_time = 0 #连续错误
     while startid>endid
       wid = 'wooyun-2015-0'+startid.to_s
-      unless Bug.find_by_wmid(startid) ||
+      if Bug.find_by_wmid(startid)
+        break if count>0 #找到数据库有的数据为止
+      else
         #puts "checking #{wid}"
         if process_bug(wid, true) {|data| data[:ishide] = true; data}
           last_error_time = 0
           puts "-------> found hidden bug of #{wid}...      ".yellow
-        else
-          last_error_time = last_error_time + 1
-        end
-        if last_error_time>10
-          #puts "error time is last : #{last_error_time} !".red
         end
         #sleep 0.2
       end
@@ -170,7 +167,7 @@ class WooyunDumper
     }
 
     #提取content内容解析
-    Bug.where("created_time IS NULL or published_time IS NULL or iscloud IS NULL or ismoney IS NULL or author IS NULL or corporation IS NULL").each{|b|
+    Bug.where("created_time IS NULL or published_time IS NULL or iscloud IS NULL or ismoney IS NULL or author IS NULL or corporation IS NULL or rank IS NULL").each{|b|
       break unless process_content(b)
     }
 
@@ -185,7 +182,7 @@ class WooyunDumper
     return nil if c.include?('该漏洞不存在或未通过审核') || !c.include?('细节向公众公开')
 
     content = Nokogiri::HTML(c)
-    data = {:corporation=>nil, :author=>nil, :iscloud=>false, :ismoney=>false, :wid=>wid, :content=>c, :wmid=>wid.to_wmid}
+    data = {:corporation=>nil, :author=>nil, :iscloud=>false, :ismoney=>false, :wid=>wid, :content=>c, :wmid=>wid.to_wmid, :rank=>0}
 
     if content.css('h3.wybug_date').size>0 #事件
       data[:created_time] = content.css('h3.wybug_date')[0].text.split('：')[1].strip
@@ -201,6 +198,16 @@ class WooyunDumper
       author = c.string_between_markers("<h3>漏洞作者：","h3").strip
       data[:author] = author.string_between_markers(">","</a>").strip
       data[:title] = c.string_between_markers("<h3>漏洞标题：","h3").strip
+    end
+
+    if c.include?("漏洞Rank：")
+      rank = c.string_between_markers("漏洞Rank：","</p>").strip
+      if !rank.nil? && rank.size>0
+        rank = rank.split('(')[0].strip if rank.include?('(')
+        rank = rank.to_i
+        data[:rank] = rank if rank>0
+      end
+
     end
 
     if data[:corporation].nil? || data[:author].nil? || data[:created_time].nil? || data[:published_time].nil?
@@ -236,6 +243,7 @@ class WooyunDumper
     b.corporation = data[:corporation]
     b.author = data[:author]
     b.title = data[:title]
+    b.rank = data[:rank]
     b.save
 
     true
@@ -260,5 +268,5 @@ class WooyunDumper
 end
 
 WooyunDumper.sync
-WooyunDumper.bruteforce_sync
+WooyunDumper.bruteforce_sync(get_max_wmid, 50)
 

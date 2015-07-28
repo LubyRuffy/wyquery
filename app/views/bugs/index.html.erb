@@ -36,6 +36,10 @@
                   :class => 'filterrific-periodically-observed'
           ) %>隐藏
 
+      <%= f.select :rank_range,
+                   @filterrific.select_options[:rank_range],
+                   {},
+                   { :class => 'form-control' } %>
       <%= f.select :sorted_by,
               @filterrific.select_options[:sorted_by],
               {},
@@ -52,13 +56,13 @@
     <%= render_filterrific_spinner %>
 <% end %>
 
-<table class="listTable">
+<table class="listTable" >
   <thead>
   <tr><td style="text-align:right; background-color:#fff;">共查询到 <%= @bugs.count%> 条记录</td><td colspan="2" style="text-align:right; background-color:#fff;"><%= will_paginate @bugs %></td></tr>
     <tr>
       <th style="width:100px">日期(提交／公开）</th>
-      <th>标题</th>
-      <th style="width:50px">是否隐藏</th>
+      <th style="width:600px">标题</th>
+      <th style="width:30px">是否隐藏</th>
     </tr>
   </thead>
 
@@ -69,8 +73,8 @@
           <%= (bug.iscloud?)?raw('<img src="/images/credit.png">'):''%>
           （<%= bug.published_time.strftime('%F') %>）
         </td>
-        <td><%= link_to bug.title, bug %></td>
-        <td><%= bug.ishide? ? '是':'' %></td>
+        <td style="word-break:keep-all;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:600px"><%= link_to bug.title, bug %> <%= bug.rank %></td>
+        <td style="width:30px"><%= bug.ishide? ? '是':'' %></td>
       </tr>
     <% end %>
     <tr><td style="text-align:right; background-color:#fff;">共查询到 <%= @bugs.count%> 条记录</td><td colspan="2" style="text-align:right; background-color:#fff;"><%= will_paginate @bugs %></td></tr>
