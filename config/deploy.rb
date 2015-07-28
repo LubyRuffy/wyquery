@@ -10,7 +10,7 @@ require 'mina/git'
 #   repository   - Git repo to clone from. (needed by mina/git)
 #   branch       - Branch name to deploy. (needed by mina/git)
 set :user, 'root'
-set :domain, 'wooyun.wusec.org'
+set :domain, 'www1.wusec.org'
 set :deploy_to, '/root/wyquery_deploy'
 set :repository, 'https://github.com/LubyRuffy/wyquery.git'
 set :branch, 'master'
@@ -78,7 +78,7 @@ task :deploy => :environment do
     to :launch do
       queue "mkdir -p #{deploy_to}/#{current_path}/tmp/"
       queue "touch #{deploy_to}/#{current_path}/tmp/restart.txt"
-      queue "nohup rails s &"
+      #queue "nohup rails s &"
     end
   end
 end

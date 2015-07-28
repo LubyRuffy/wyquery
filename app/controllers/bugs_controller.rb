@@ -12,7 +12,7 @@ class BugsController < ApplicationController
 
     @filterrific = initialize_filterrific(
         Bug,
-        params[:filterrific] ||= {filterrific_reset: true, sorted_by: 'published_time_desc'},
+        params[:filterrific] ||= {filterrific_reset: true, sorted_by: 'published_time_desc', :select_cols=>'test'},
         :select_options => {
             sorted_by: Bug.options_for_sorted_by
         }
@@ -49,7 +49,7 @@ class BugsController < ApplicationController
     end
 
     def filterrific_params
-      params.require(:filterrific).permit(:q, :with_cloud, :with_money, :with_hide, :sorted_by, :page, :per_page, :filterrific_reset)
+      params.require(:filterrific).permit(:q, :select_cols, :with_cloud, :with_money, :with_hide, :sorted_by, :page, :per_page, :filterrific_reset)
     end
 end
 
