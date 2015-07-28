@@ -268,5 +268,5 @@ class WooyunDumper
 end
 
 WooyunDumper.sync
-WooyunDumper.bruteforce_sync(get_max_wmid, 50)
+WooyunDumper.bruteforce_sync(WooyunDumper.get_max_wmid, 100)
 

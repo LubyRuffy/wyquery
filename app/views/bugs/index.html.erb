@@ -73,7 +73,7 @@
           <%= (bug.iscloud?)?raw('<img src="/images/credit.png">'):''%>
           （<%= bug.published_time.strftime('%F') %>）
         </td>
-        <td style="word-break:keep-all;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:600px"><%= link_to bug.title, bug %> <%= bug.rank %></td>
+        <td><%= link_to bug.title, bug %> <%= bug.rank %></td>
         <td style="width:30px"><%= bug.ishide? ? '是':'' %></td>
       </tr>
     <% end %>
