@@ -49,7 +49,7 @@ class BugsController < ApplicationController
     end
 
     def filterrific_params
-      params.require(:filterrific).permit(:q, :with_cloud, :with_money, :with_hide, :sorted_by, :page, :per_page)
+      params.require(:filterrific).permit(:q, :with_cloud, :with_money, :with_hide, :sorted_by, :page, :per_page, :filterrific_reset)
     end
 end
 
