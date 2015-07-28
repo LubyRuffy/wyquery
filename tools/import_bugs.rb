@@ -63,13 +63,14 @@ class WooyunDumper
 
   #差异同步
   def self.bruteforce_sync(startid=0)
-    startid = get_max_wid() if startid==0
+    startid = get_max_wmid() if startid==0
+    endid = get_max_wmid()-100
     if startid == 0
       put "startid is 0, you should set the value !".red
     end
 
     last_error_time = 0 #连续错误
-    while startid>0
+    while startid>endid
       wid = 'wooyun-2015-0'+startid.to_s
       unless Bug.find_by_wmid(startid) ||
         #puts "checking #{wid}"
@@ -240,10 +241,10 @@ class WooyunDumper
     true
   end
 
-  def self.get_max_wid()
-    max_id = Bug.select('wid').order('length(wid) desc, wid desc').limit(1).first
+  def self.get_max_wmid()
+    max_id = Bug.select('wmid').order('length(wmid) desc, wmid desc').limit(1).first
     if max_id
-      return max_id.wid.split('-')[2].to_i
+      return max_id['wmid'].to_i
     end
     nil
   end
@@ -259,5 +260,5 @@ class WooyunDumper
 end
 
 WooyunDumper.sync
-#WooyunDumper.bruteforce_sync
+WooyunDumper.bruteforce_sync
 
