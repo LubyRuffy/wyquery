@@ -11,7 +11,7 @@ Wooyun公开的漏洞详情是一个很好的资源，但是没有提供很好�
 使用步骤：
 git clone https://github.com/LubyRuffy/wyquery.git
 cd wyquery
-bundel install
+bundle install
 rake db:migrate
 rails s
 然后访问http://0.0.0.0:3000

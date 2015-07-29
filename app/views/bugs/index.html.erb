@@ -18,6 +18,18 @@
                   :q,
                   class: 'filterrific-periodically-observed'
           ) %>
+      厂商
+      <%# give the search field the 'filterrific-periodically-observed' class for live updates %>
+      <%= f.text_field(
+                  :corporation,
+                  class: 'filterrific-periodically-observed'
+          ) %>
+      作者
+      <%# give the search field the 'filterrific-periodically-observed' class for live updates %>
+      <%= f.text_field(
+                  :author,
+                  class: 'filterrific-periodically-observed'
+          ) %>
 
       <%# give the search field the 'filterrific-periodically-observed' class for live updates %>
       <%= f.check_box(

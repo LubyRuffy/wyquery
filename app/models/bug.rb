@@ -4,6 +4,8 @@ class Bug < ActiveRecord::Base
       default_filter_params: { :select_cols=>'test', :sorted_by => 'published_time_desc'},
       available_filters: [
           :q,
+          :author,
+          :corporation,
           :with_cloud,
           :with_money,
           :with_hide,
@@ -22,6 +24,18 @@ class Bug < ActiveRecord::Base
        query = query.downcase
        where("title LIKE ? or content LIKE ?", "%#{query}%", "%#{query}%")
   }
+
+  scope :author, lambda { |query|
+            return nil if query.blank?
+            query = query.downcase
+            where("author LIKE ?", "%#{query}%")
+          }
+
+  scope :corporation, lambda { |query|
+                 return nil if query.blank?
+                 query = query.downcase
+                 where("corporation LIKE ?", "%#{query}%")
+               }
 
   scope :with_cloud, lambda { |flag|
      check_boolean_attr "iscloud", flag
