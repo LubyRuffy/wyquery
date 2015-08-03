@@ -10,6 +10,7 @@ class BugsController < ApplicationController
     per_page = 20 if per_page==0
     per_page = 100 if per_page>100
 
+    params[:filterrific][:select_cols] = 'test'
     @filterrific = initialize_filterrific(
         Bug,
         params[:filterrific] ||= {filterrific_reset: true, sorted_by: 'published_time_desc', :select_cols=>'test'},
@@ -51,6 +52,7 @@ class BugsController < ApplicationController
 
     def filterrific_params
       params.require(:filterrific).permit(:q, :select_cols, :with_cloud, :with_money, :with_hide, :sorted_by, :page, :per_page, :filterrific_reset)
+
     end
 end
 

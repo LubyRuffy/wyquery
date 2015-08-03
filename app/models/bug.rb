@@ -69,6 +69,8 @@ class Bug < ActiveRecord::Base
                         order("published_time #{ direction }, created_time #{ direction }")
                       when /^rank_/
                         order("rank #{ direction }, published_time #{ direction }, created_time #{ direction }")
+                      when /^diff_time/
+                        where("strftime('%s', published_time)-strftime('%s', created_time)>0").order("(strftime('%s', published_time)-strftime('%s', created_time)) #{ direction }")
                       else
                         raise(ArgumentError, "Invalid sort option: #{ sort_option.inspect }")
                     end
@@ -85,6 +87,8 @@ class Bug < ActiveRecord::Base
         ['公开时间顺序', 'published_time_asc'],
         ['提交时间倒序', 'created_time_desc'],
         ['提交时间顺序', 'created_time_asc'],
+        ['提交时间和公开时间差异倒序', 'diff_time_desc'],
+        ['提交时间和公开时间差异顺序', 'diff_time_asc'],
         ['RANK排序', 'rank_desc'],
     ]
   end
