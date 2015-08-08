@@ -164,6 +164,11 @@ class WooyunDumper
   def self.content_sync
     Bug.where("content IS NULL").each{|b|
       process_bug(b.wid)
+      b = Bug.find_by_wmid(b.wid.to_wmid)
+      unless process_content(b)
+        puts "process content of b.wid error!".red
+        exit
+      end
     }
 
     #提取content内容解析
@@ -268,5 +273,5 @@ class WooyunDumper
 end
 
 WooyunDumper.sync
-WooyunDumper.bruteforce_sync(WooyunDumper.get_max_wmid, 100)
+WooyunDumper.bruteforce_sync(WooyunDumper.get_max_wmid, 1000)
 
