@@ -166,14 +166,17 @@ class WooyunDumper
       process_bug(b.wid)
       b = Bug.find_by_wmid(b.wid.to_wmid)
       unless process_content(b)
-        puts "process content of b.wid error!".red
+        puts "process content of #{b.wid} error!".red
         exit
       end
     }
 
     #提取content内容解析
     Bug.where("created_time IS NULL or published_time IS NULL or iscloud IS NULL or ismoney IS NULL or author IS NULL or corporation IS NULL or rank IS NULL").each{|b|
-      break unless process_content(b)
+      unless process_content(b)
+        puts "process content of #{b.wid} error!".red
+        exit
+      end
     }
 
     Bug.where("wmid IS NULL").each{|b|
@@ -239,17 +242,19 @@ class WooyunDumper
     end
 
     data = parse_content(b.content, b.wid)
-    return false unless data
-
-    b.created_time = data[:created_time]
-    b.published_time = data[:published_time]
-    b.iscloud = data[:iscloud]
-    b.ismoney = data[:ismoney]
-    b.corporation = data[:corporation]
-    b.author = data[:author]
-    b.title = data[:title]
-    b.rank = data[:rank]
-    b.save
+    if data
+      b.created_time = data[:created_time]
+      b.published_time = data[:published_time]
+      b.iscloud = data[:iscloud]
+      b.ismoney = data[:ismoney]
+      b.corporation = data[:corporation]
+      b.author = data[:author]
+      b.title = data[:title]
+      b.rank = data[:rank]
+      b.save
+    else
+      puts "no data of #{b.wid}".red
+    end
 
     true
   end
