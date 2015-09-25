@@ -12,6 +12,7 @@ class Bug < ActiveRecord::Base
           :sorted_by,
           :rank_range,
           :select_cols,
+          :finished
       ]
   )
 
@@ -75,6 +76,10 @@ class Bug < ActiveRecord::Base
                         raise(ArgumentError, "Invalid sort option: #{ sort_option.inspect }")
                     end
                   }
+
+  scope :finished, -> {
+    where("created_time is not null")
+  }
 
   def self.check_boolean_attr attr_name, attr_value
     return nil  if 0 == attr_value.to_i

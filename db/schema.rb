@@ -14,22 +14,23 @@
 ActiveRecord::Schema.define(version: 20150728174305) do
 
   create_table "bugs", force: :cascade do |t|
-    t.string   "wid"
-    t.string   "title"
-    t.string   "content"
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
+    t.string   "wid",            limit: 255
+    t.string   "title",          limit: 255
+    t.text     "content",        limit: 4294967295
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
     t.datetime "created_time"
     t.datetime "published_time"
-    t.boolean  "iscloud"
-    t.boolean  "ismoney"
-    t.string   "corporation"
-    t.string   "author"
-    t.boolean  "ishide"
-    t.integer  "wmid"
-    t.integer  "rank"
+    t.boolean  "iscloud",        limit: 1
+    t.boolean  "ismoney",        limit: 1
+    t.string   "corporation",    limit: 255
+    t.string   "author",         limit: 255
+    t.boolean  "ishide",         limit: 1
+    t.integer  "wmid",           limit: 4
+    t.integer  "rank",           limit: 4
   end
 
-  add_index "bugs", ["wid"], name: "index_bugs_on_wid"
+  add_index "bugs", ["wid"], name: "index_bugs_on_wid", using: :btree
+  add_index "bugs", ["wmid"], name: "index_bugs_on_wmid", using: :btree
 
 end

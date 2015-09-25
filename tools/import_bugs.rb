@@ -27,8 +27,26 @@ class String
     self[/#{Regexp.escape(marker1)}(.*?)#{Regexp.escape(marker2)}/m, 1]
   end
 
+  def string_between_markers_full marker1, marker2
+    self[/#{Regexp.escape(marker1)}(.*?)#{Regexp.escape(marker2)}/m]
+  end
+
   def to_wmid
     self.split('-')[2].to_i
+  end
+
+  def to_email
+    a=self
+    e=""
+    r=a[0,2].to_i(16)
+    n=2
+
+    while a.length-n>0
+      i=a[n,2].to_i(16)^r
+      e+=i.chr
+      n+=2
+    end
+    e
   end
 end
 
@@ -96,6 +114,7 @@ class WooyunDumper
     url = "http://www.wooyun.org/bugs/#{wid}"
     c = open(url).read
     c = utf8(c)
+    c = replace_cfemail(c)
     doc = Nokogiri::HTML(c)
     content = doc.css('div.content')
     if content
@@ -133,7 +152,10 @@ class WooyunDumper
     code = 0
     puts "----> Process page #{page}...".green
     url = "http://www.wooyun.org/bugs/new_public/page/#{page}"
-    doc = Nokogiri::HTML(open(url).read)
+    c = open(url).read
+    c = utf8(c)
+    c = replace_cfemail(c)
+    doc = Nokogiri::HTML(c)
     links = doc.css('table.listTable tbody tr td a')
     if links.size>0
       links.each{|a|
@@ -189,6 +211,7 @@ class WooyunDumper
   def self.parse_content(c, wid)
     return nil if c.include?('该漏洞不存在或未通过审核') || !c.include?('细节向公众公开')
 
+    c = replace_cfemail(c)
     content = Nokogiri::HTML(c)
     data = {:corporation=>nil, :author=>nil, :iscloud=>false, :ismoney=>false, :wid=>wid, :content=>c, :wmid=>wid.to_wmid, :rank=>0}
 
@@ -207,6 +230,9 @@ class WooyunDumper
       data[:author] = author.string_between_markers(">","</a>").strip
       data[:title] = c.string_between_markers("<h3>漏洞标题：","h3").strip
     end
+
+    #baidu云加速的email保护
+    data[:title] = content.css('title')[0].text if data[:title].include?('[email protected]')
 
     if c.include?("漏洞Rank：")
       rank = c.string_between_markers("漏洞Rank：","</p>").strip
@@ -275,8 +301,23 @@ class WooyunDumper
     end
     c
   end
+
+  def self.replace_cfemail(content)
+    content.scan(/<(a|span)#{Regexp.escape(' class="__cf_email__"')}.*?#{Regexp.escape('</script>')}/im).each{|m|
+      m = $& if m.kind_of?(Array)
+      cfemail = m.string_between_markers('data-cfemail="', '"')
+      if cfemail
+        #puts cfemail
+        email = cfemail.to_email
+        puts "Find email : #{email}   "
+        content[m] = email if content.include?(m) #
+      end
+    }
+    content
+  end
 end
 
+#WooyunDumper.process_page(77)
 WooyunDumper.sync
 WooyunDumper.bruteforce_sync(WooyunDumper.get_max_wmid, 1000)
 
