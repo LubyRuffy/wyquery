@@ -31,6 +31,19 @@ class String
     self[/#{Regexp.escape(marker1)}(.*?)#{Regexp.escape(marker2)}/m]
   end
 
+  # This method will return an array of MatchData's rather than the
+  # array of strings returned by the vanilla `scan`.
+  def match_all(regex)
+    match_str = self
+
+    [].tap do |match_datas|
+      while md = match_str.match(regex)
+        match_datas << md
+        match_str = md.post_match
+      end
+    end
+  end
+
   def to_wmid
     self.split('-')[2].to_i
   end
@@ -231,9 +244,6 @@ class WooyunDumper
       data[:title] = c.string_between_markers("<h3>漏洞标题：","h3").strip
     end
 
-    #baidu云加速的email保护
-    data[:title] = content.css('title')[0].text if data[:title].include?('[email protected]')
-
     if c.include?("漏洞Rank：")
       rank = c.string_between_markers("漏洞Rank：","</p>").strip
       if !rank.nil? && rank.size>0
@@ -303,21 +313,23 @@ class WooyunDumper
   end
 
   def self.replace_cfemail(content)
-    content.scan(/<(a|span)#{Regexp.escape(' class="__cf_email__"')}.*?#{Regexp.escape('</script>')}/im).each{|m|
-      m = $& if m.kind_of?(Array)
-      cfemail = m.string_between_markers('data-cfemail="', '"')
+    content.match_all(/<(a|span)#{Regexp.escape(' class="__cf_email__"')}.*?#{Regexp.escape('</script>')}/im).each{|m|
+      text = m[0]
+      cfemail = text.string_between_markers('data-cfemail="', '"')
       if cfemail
         #puts cfemail
         email = cfemail.to_email
         puts "Find email : #{email}   "
-        content[m] = email if content.include?(m) #
+        if content.include?(text) #
+          content[text] = email
+        end
+
       end
     }
     content
   end
 end
 
-#WooyunDumper.process_page(77)
 WooyunDumper.sync
 WooyunDumper.bruteforce_sync(WooyunDumper.get_max_wmid, 1000)
 
