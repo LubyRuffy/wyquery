@@ -21,6 +21,7 @@ require 'open-uri'
 require 'nokogiri'
 require 'rubygems'
 require 'colorize'
+require 'optparse'
 
 class String
   def string_between_markers marker1, marker2
@@ -65,9 +66,13 @@ end
 
 
 class WooyunDumper
+  def initialize(options=nil)
+    @options = options
+    @cookie = @options[:cookie]
+  end
 
   #完整同步
-  def self.full_sync
+  def full_sync
     page=1
     while process_page(page) >= 0
       page = page+1
@@ -80,7 +85,7 @@ class WooyunDumper
   end
 
   #差异同步
-  def self.sync
+  def sync
     page=1
     while process_page(page) == 1
       page = page+1
@@ -93,7 +98,7 @@ class WooyunDumper
   end
 
   #差异同步，如果count不为0，那么到找到的id位置就结束，否则一直找
-  def self.bruteforce_sync(startid=0, count=0)
+  def bruteforce_sync(startid=0, count=0)
     startid = get_max_wmid() if startid==0
     endid = 0
     endid = get_max_wmid()-count if count>0
@@ -103,8 +108,8 @@ class WooyunDumper
 
     while startid>endid
       wid = 'wooyun-2015-0'+startid.to_s
-      if Bug.find_by_wmid(startid)
-        break if count>0 #找到数据库有的数据为止
+      if bug = Bug.find_by_wmid(startid)
+        break if count>0 && bug.ishide #找到数据库有隐藏的数据为止
       else
         #puts "checking #{wid}"
         if process_bug(wid, true) {|data| data[:ishide] = true; data}
@@ -121,11 +126,19 @@ class WooyunDumper
     puts "----> Finished!".green
   end
 
+  def get_http(url)
+    if @cookie
+      open(url, "Cookie" => @cookie).read
+    else
+      open(url).read
+    end
+  end
+
   #是否不检查数据库是否存在
-  def self.process_bug(wid, without_check_db=false)
+  def process_bug(wid, without_check_db=false)
     print "\r-------> Process bug of #{wid}...      ".blue
     url = "http://www.wooyun.org/bugs/#{wid}"
-    c = open(url).read
+    c = get_http(url)
     c = utf8(c)
     c = replace_cfemail(c)
     doc = Nokogiri::HTML(c)
@@ -161,11 +174,11 @@ class WooyunDumper
 
   private
   # return 0没有新增数据，1获取数据，－1没有获取数据
-  def self.process_page(page)
+  def process_page(page)
     code = 0
     puts "----> Process page #{page}...".green
     url = "http://www.wooyun.org/bugs/new_public/page/#{page}"
-    c = open(url).read
+    c = get_http(url)
     c = utf8(c)
     c = replace_cfemail(c)
     doc = Nokogiri::HTML(c)
@@ -174,8 +187,12 @@ class WooyunDumper
       links.each{|a|
         wid = a['href'].split('/')[2]
         title = a.text
-        if Bug.exists?(wmid:wid.to_wmid)
+        if bug = Bug.find_by_wmid(wid.to_wmid)
           print "\rExists record of wid #{wid} #{title}...                      "
+          if bug.ishide
+            bug.ishide = false
+            bug.save
+          end
         else
           bug = Bug.new {|b|
             b.wid = wid
@@ -196,7 +213,7 @@ class WooyunDumper
 
 
 
-  def self.content_sync
+  def content_sync
     Bug.where("content IS NULL").each{|b|
       process_bug(b.wid)
       b = Bug.find_by_wmid(b.wid.to_wmid)
@@ -221,7 +238,7 @@ class WooyunDumper
     }
   end
 
-  def self.parse_content(c, wid)
+  def parse_content(c, wid)
     return nil if c.include?('该漏洞不存在或未通过审核') || !c.include?('细节向公众公开')
 
     c = replace_cfemail(c)
@@ -266,7 +283,7 @@ class WooyunDumper
     data
   end
 
-  def self.process_content(b)
+  def process_content(b)
     print "\r-------> Process content of #{b.wid}...      ".blue
 
     #编码错误，需要重新更新
@@ -289,13 +306,14 @@ class WooyunDumper
       b.rank = data[:rank]
       b.save
     else
-      puts "no data of #{b.wid}".red
+      puts "no data of #{b.wid}, delete...".red
+      b.delete
     end
 
     true
   end
 
-  def self.get_max_wmid()
+  def get_max_wmid()
     max_id = Bug.select('wmid').order('length(wmid) desc, wmid desc').limit(1).first
     if max_id
       return max_id['wmid'].to_i
@@ -303,7 +321,7 @@ class WooyunDumper
     nil
   end
 
-  def self.utf8(c)
+  def utf8(c)
     c.force_encoding("UTF-8")
     unless c.valid_encoding?
       puts "invalid encoding".yellow
@@ -312,7 +330,7 @@ class WooyunDumper
     c
   end
 
-  def self.replace_cfemail(content)
+  def replace_cfemail(content)
     content.match_all(/<(a|span)#{Regexp.escape(' class="__cf_email__"')}.*?#{Regexp.escape('</script>')}/im).each{|m|
       text = m[0]
       cfemail = text.string_between_markers('data-cfemail="', '"')
@@ -330,6 +348,50 @@ class WooyunDumper
   end
 end
 
-WooyunDumper.sync
-WooyunDumper.bruteforce_sync(WooyunDumper.get_max_wmid, 1000)
+class Optparser
+  def self.parse(args)
+    options = {
+        cookie:nil,
+        id: nil,
+        verbose: false
+    }
+
+    opt_parser = OptionParser.new do |opts|
+      # Set a banner, displayed at the top
+      # of the help screen.
+      opts.banner = "Usage: #{$0} [options] ..."
+
+      opts.separator ''
+      opts.separator "Configuration options:"
+
+      opts.on('-c', '--cookie <COOKIE_STRING>', String, 'Cookie string when needed') do |cookie|
+        options[:cookie] = cookie
+      end
+
+      opts.on('-i', '--id <id>', String, 'From id to bruteforce, default to max wmid in db') do |id|
+        options[:id] = id.to_i
+      end
+
+      opts.separator ""
+      opts.separator "Common options:"
+
+      opts.on_tail('-v', '--verbose', 'Show more information') do
+        options[:verbose] = true
+      end
+
+      opts.on_tail("-h", "--help", "Display this screen" ) do
+        puts opts
+        exit
+      end
+    end
+
+    opt_parser.parse!(args)
+    options
+  end
+end
+
+options =  Optparser.parse(ARGV)
+wd = WooyunDumper.new(options)
+wd.sync
+wd.bruteforce_sync(options[:id] || WooyunDumper.get_max_wmid)
 
