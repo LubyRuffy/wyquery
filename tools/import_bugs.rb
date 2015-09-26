@@ -109,7 +109,11 @@ class WooyunDumper
     while startid>endid
       wid = 'wooyun-2015-0'+startid.to_s
       if bug = Bug.find_by_wmid(startid)
-        break if count>0 && bug.ishide #找到数据库有隐藏的数据为止
+        break if count>0  #找到数据库有隐藏的数据为止
+        if count==0 && bug.ishide
+          puts "found hidden item, now break!"
+          break
+        end
       else
         #puts "checking #{wid}"
         if process_bug(wid, true) {|data| data[:ishide] = true; data}
@@ -170,6 +174,14 @@ class WooyunDumper
       return false
     end
     true
+  end
+
+  def get_max_wmid()
+    max_id = Bug.select('wmid').order('length(wmid) desc, wmid desc').limit(1).first
+    if max_id
+      return max_id['wmid'].to_i
+    end
+    nil
   end
 
   private
@@ -313,14 +325,6 @@ class WooyunDumper
     true
   end
 
-  def get_max_wmid()
-    max_id = Bug.select('wmid').order('length(wmid) desc, wmid desc').limit(1).first
-    if max_id
-      return max_id['wmid'].to_i
-    end
-    nil
-  end
-
   def utf8(c)
     c.force_encoding("UTF-8")
     unless c.valid_encoding?
@@ -393,5 +397,5 @@ end
 options =  Optparser.parse(ARGV)
 wd = WooyunDumper.new(options)
 wd.sync
-wd.bruteforce_sync(options[:id] || WooyunDumper.get_max_wmid)
+wd.bruteforce_sync(options[:id] || wd.get_max_wmid)
 
